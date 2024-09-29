@@ -1,5 +1,6 @@
 package com.mikayelovich.serverless_app.entity;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 import lombok.Data;
 
 @Data

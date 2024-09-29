@@ -30,7 +30,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ServerLessApp
-      Handler: com.mikayelovich.serverless_app.ReadFileLambda::handleRequest
+      Handler: com.mikayelovich.serverless_app.lambda.ReadFileLambda::handler
       Policies:
         - S3ReadPolicy:
             BucketName: !Sub ${AWS::StackName}-${AWS::AccountId}-${AWS::Region}
@@ -45,15 +45,15 @@ Resources:
           Properties:
             Bucket: !Ref ProductsBucket
             Events: s3:ObjectCreated:*
-
   SaveProductLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ServerLessApp
-      Handler: com.mikayelovich.serverless_app.SaveProductLambda::handleRequest
+      Handler: com.mikayelovich.serverless_app.lambda.SaveProductLambda::handler
       Policies:
-        - SqsPollerPolicy:
-            QueueName: !GetAtt ProductsQueue.QueueName
+        - SQSPollerPolicy:
+            QueueName:
+              !GetAtt ProductsQueue.QueueName
         - DynamoDBCrudPolicy:
             TableName: !Ref ProductsTable
       Events:
@@ -66,7 +66,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ServerLessApp
-      Handler: com.mikayelovich.serverless_app.GetAllProductsLambda::handleRequest
+      Handler: com.mikayelovich.serverless_app.lambda.GetAllProductsLambda::handleRequest
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref ProductsTable

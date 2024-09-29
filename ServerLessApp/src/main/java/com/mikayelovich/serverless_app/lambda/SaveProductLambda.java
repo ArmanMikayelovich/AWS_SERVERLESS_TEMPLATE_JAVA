@@ -34,7 +34,7 @@ public class SaveProductLambda {
                 ProductDTO productDTO = mapper.readValue(record.getBody(), ProductDTO.class);
                 Table table = dynamoDB.getTable(TABLE_NAME);
                 Item item = new Item()
-                        .withPrimaryKey("id", UUID.randomUUID())
+                        .withPrimaryKey("id", UUID.randomUUID().toString())
                         .withString("name", productDTO.getName())
                         .withString("description", productDTO.getDescription())
                         .withInt("price", productDTO.getPrice());

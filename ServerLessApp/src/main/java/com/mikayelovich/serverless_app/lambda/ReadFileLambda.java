@@ -12,7 +12,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mikayelovich.serverless_app.dto.ProductDTO;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,19 +35,40 @@ public class ReadFileLambda {
      *
      * @param event The S3 event containing records of objects put into the bucket.
      */
-    public void handler(S3Event event) {
-        event.getRecords().forEach(s3Record -> {
-            S3Object object = s3.getObject(s3Record.getS3().getBucket().getName(), s3Record.getS3().getObject().getKey());
+ public void handler(S3Event event) {
+    System.out.println("Handler invoked with event: " + event);
+    event.getRecords().forEach(s3Record -> {
+        System.out.println("Processing S3 record: " + s3Record);
+        S3Object object = s3.getObject(s3Record.getS3().getBucket().getName(), s3Record.getS3().getObject().getKey());
+        System.out.println("Object Metadata: "+object.getObjectMetadata());
+        try {
             S3ObjectInputStream s3InputStream = object.getObjectContent();
-            try {
-                List<ProductDTO> productsData = Arrays.asList(mapper.convertValue(s3InputStream, ProductDTO[].class));
-                s3InputStream.close();
-                pushMessageToSQS(productsData);
-            } catch (IOException e) {
-                System.err.println("Error processing S3 object: " + e.getMessage());
-            }
-        });
+            List<ProductDTO> productDTOS = extractStringDataFromS3Object(s3InputStream);
+            s3InputStream.close();
+            pushMessageToSQS(productDTOS);
+        } catch (IOException e) {
+            System.err.println("Error processing S3 object: " + e.getMessage());
+        }
+    });
+    System.out.println("Handler execution completed");
+}
 
+    private    List<ProductDTO> extractStringDataFromS3Object(S3ObjectInputStream s3InputStream) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(s3InputStream))) {
+            System.out.println("Reading S3 object content");
+            StringBuilder fileContent = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                fileContent.append(line);
+            }
+            System.out.println("Wrote S3 object content: " + fileContent);
+            List<ProductDTO> productsData = Arrays.asList(mapper.readValue(fileContent.toString(), ProductDTO[].class));
+            System.out.println("Parsed products data: " + productsData);
+            return productsData;
+        } catch (IOException e) {
+            System.err.println("Error processing S3 object: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
 

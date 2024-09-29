@@ -16,7 +16,7 @@ import java.util.List;
 
 public class GetAllProductsLambda implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private static final String TABLE_NAME = System.getenv("PRODUCTS_TABLE");
+    public static final String TABLE_NAME = System.getenv("PRODUCTS_TABLE");
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final DynamoDBMapperConfig mapperConfig = new DynamoDBMapperConfig.Builder()
             .withTableNameOverride(DynamoDBMapperConfig.TableNameOverride.withTableNameReplacement(TABLE_NAME))
